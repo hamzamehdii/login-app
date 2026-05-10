@@ -71,3 +71,17 @@ pipeline {
         }
     }
 }
+
+stage('Security Scan') {
+    steps {
+        echo 'Running Trivy image vulnerability scan...'
+        bat "docker run --rm aquasec/trivy:latest image --exit-code 0 --severity HIGH,CRITICAL ${IMAGE_NAME}:latest"
+    }
+}
+
+stage('OWASP Dependency Check') {
+    steps {
+        echo 'Checking Python dependencies for known CVEs...'
+        bat "docker run --rm -v %CD%:/src owasp/dependency-check --scan /src --format JSON --out /src/dependency-report.json || exit 0"
+    }
+}
