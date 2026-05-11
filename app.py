@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, url_for, render_template_string, session
+from flask import Flask, request, redirect, url_for, render_template_string, session, jsonify
 
 app = Flask(__name__)
 app.secret_key = 'lab-secret-key'
@@ -45,6 +45,25 @@ def dashboard():
 def logout():
     session.clear()
     return redirect(url_for('login'))
+
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No JSON body provided'}), 400
+    u = data.get('username', '')
+    p = data.get('password', '')
+    if u in USERS and USERS[u] == p:
+        return jsonify({'status': 'success', 'message': f'Welcome {u}', 'user': u}), 200
+    return jsonify({'status': 'error', 'message': 'Invalid credentials'}), 401
+
+@app.route('/api/users', methods=['GET'])
+def api_users():
+    return jsonify({'users': list(USERS.keys())}), 200
+
+@app.route('/api/health', methods=['GET'])
+def api_health():
+    return jsonify({'status': 'healthy', 'app': 'login-app'}), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
