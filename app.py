@@ -2,6 +2,17 @@ from flask import Flask, request, redirect, url_for, render_template_string, ses
 
 app = Flask(__name__)
 app.secret_key = 'lab-secret-key'
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = False 
+
+@app.after_request
+def add_security_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Content-Security-Policy'] = "default-src 'self'"
+    return response
 
 USERS = {'admin': 'password123', 'user': 'test456'}
 
